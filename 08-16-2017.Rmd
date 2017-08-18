@@ -1,0 +1,1338 @@
+---
+title: "Dataviz course"
+author: "Lasse Gullvåg Sætre"
+date: "08-16-2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Kieran explains Markdown
+I'm good, thank you. 
+
+![R Markdown, familiar](https://i.amz.mshcdn.com/Hn_kuwsVEKpZcr_S0U_Ww4VwXnI=/fit-in/1200x9600/2013%2F03%2F30%2F8b%2FHello.892dc.gif)
+
+
+So let's try to load the tidyverse
+
+## Tidyverse
+
+
+```{r tidythings}
+  library("tidyverse")
+  library("socviz")
+```
+
+## What R code looks like 
+
+R is a object oriented language. Everything has a name. Some names are forbidden. Things that are reserved for the core features of the language, like true or the plus symbol. Use naming conventions for the objects you're working with. 
+
+```{r datainput}
+my_numbers <- c(1, 2, 3, 1, 3, 5, 25)
+```
+
+The <- thing is the assign parameter, interpret it as "gets". it performs the action of creating objects. Use the keyboard shortcut alt dash. 
+
+C is short for concoctanate. Takes comma-seperated numbers or strings and joins them together into a vector.
+
+So let's do this. The mean function:
+
+```{r meanthing}
+mean(x = my_numbers)
+```
+All functions have paranthesis. This is where the inputs go. The mean function takes one required argument. Their names are internal to their functions (objects you've created outside the function wont intefer). 
+
+Functions take inputs, perform actions, produce outputs. 
+
+The first argument of mean is X. If you don't specify X, it will work anyway?
+
+```{r}
+mean(my_numbers)
+```
+
+You can assign a functiuons output to a named object
+
+
+So these are all functions:
+
+```{r}
+class(my_numbers)
+str(my_numbers)
+table(my_numbers)
+
+x <- c(my_numbers, 5)
+y <- c(my_numbers, "hello")
+
+print(y)
+class(y)
+```
+
+Functions can also be nested. And will be ecaluated from the inside out. It starts with the innermost and gives it off to the next one outside of it.
+
+```{r}
+mean(c(my_numbers, x))
+```
+
+## Every object has at least one class.
+
+Vectors are sequences of different data. Numeric, character, factor. 
+Arrays are tables in a way: Matrix, data.frame, tibble.
+Functions are also their own class
+Models are also a class
+
+# Everything has a name, everything is a object. Every object has a class.
+
+Get  Working Directory is useful, at least outside R studio.
+```{r}
+getwd()
+```
+
+## R will be frustrating
+We're going to be adding a lot of objects together. When you type your codde out, you add objects to each other. Make sure that the + symbol is at the end of the line. It does not like it when you start lines with any arithmetic operator. 
+
+Let's do a ggplot
+
+```{r}
+p <- ggplot(data = mpg,
+            mapping = aes(x = displ,
+                          y = hwy,
+                          color = drv))
+p + geom_point()
+```
+
+
+named things gets the output of this function with these arguments. ^
+
+
+```{r}
+library(gapminder)
+head(gapminder)
+tail(gapminder)
+```
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp))
+p + geom_smooth()
+```
+
+What data am I using? What variables am I plotting? What geometry do I wanna make?
+
+## Tidy Data
+Data in long format vs data in wide format. GGPlot wants your data in long format. If the data is in the right shape, everything goes much more smoothly. wants two-dimensional data, with variables in the columns, observations in the rows. 
+
+Loaded into R it will be object with a name. A data.frame is like a table. Same as matrix, except matrix only has numbers. A data.frame can contain variables of different types (numerical, characters, categorical, dates). 
+
+**TidyR** is the tool to try to detangle untidy data.
+
+Mappings link data to things you see on the plot. This is in the aes mapping. X and Y are the most obvious. Other aesthetic mappings can include, eg., color, shape and size. Think about the logical relationship between the variable and the thing (e.g. color) representing it. 
+
+```{r}
+library(gapminder)
+p <- ggplot(data=gapminder,
+            mapping = aes( x = gdpPercap,
+                          y = lifeExp))
+p + geom_point() +
+    geom_smooth(method='gam') +
+    scale_x_log10(labels = scales::dollar) +
+    labs(x = "GDP Per Capita",
+         y = "Life Expectancy in Years",
+         title = "Economic Growth and Life Expectancy",
+         subtitle = "Data points are country years")
+```
+
+## Mapping vs setting aesthetics
+Crucial distinction. Makes everything clearer. 
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes( x = gdpPercap,
+                           y = lifeExp,
+                           color = "purple"))
+
+p + geom_point() + 
+    geom_smooth() +
+    scale_x_log10()
+```
+
+Mapping defines the relationship between a variable and the aesthetic property of the graph. Therefor mapping color = "purple" makes it try to map the variable purple to color, but there is no such variable. So it creates one on the fly, and what you get is a new variable with the only value is "purple". That's a biproduct of something which actually is useful: You can specify variables on the fly. This is the degenerate case of that. 
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp,
+                          color = "sheep"))
+p + geom_point() + 
+  geom_smooth(method='loess') +
+  scale_x_log10()
+```
+
+Doesn't matter what you call it, it will still be painted the first color: Red.
+
+The way to do it is to **set** it:
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp))
+p + geom_point(color = "purple") +
+    geom_smooth(method='loess') +
+    scale_x_log10()
+```
+
+This is not useful representationally. But we can do more. 
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp))
+p + geom_point(alpha= '0.3') + 
+    geom_smooth(color = "orange")
+    scale_x_log10()
+```
+
+Now lets try to map it reasonably:
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp,
+                          color = continent,
+                          fill = continent))
+p + geom_point() +
+    geom_smooth(method = 'loess') +
+    scale_x_log10()
+```
+
+Mapping in the ggplot baselayer, it sets global mappings inherited by everything else. But you can set mapping geom per goem, by layers.
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp))
+p + geom_point(mapping = 
+                 aes(color = continent,
+                     size = pop)) +
+  geom_smooth(method = 'loess') +
+  scale_x_log10()
+```
+
+So both mappings can be set on both a base and layer basis.
+
+## Grammar
+The grammar is a set of rules for how to produce graphics from data, taking pieces of data and mapping them to geometric objects (like points and lines) that have aesthetic qualities.
+
+> Like other rules of synstax, the grammar limits what you can say, but doesn't make what you say sensible or meaningful. Noam Chomsky
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = year,
+                          y = gdpPercap))
+p + geom_line()
+```
+
+This is syntactically correct, but does not make sense. What is happening here? You know what the gapminder dataset looks like
+
+```{r}
+head(gapminder)
+```
+
+ggplot does not infer anything else about the data. geom_line does not know about the structure of the data, and therefore does not know about the grouping of country from country. Does not know about the *groupiness*. Its faithfully joining up all the years, but does not take into account that the data is grouped into country.
+
+Can be told though:
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = year,
+                          y = gdpPercap))
+p + geom_line(aes(group = country))
+```
+
+## Faceting your geoms
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = year,
+                          y = gdpPercap))
+p + geom_line(mapping = aes(group = country)) +
+  facet_wrap(~ continent)
+```
+
+A facet is not a geom, it's a way of arranging geoms.
+Facets use R's 'formula' syntax. Read the ~ as "on" or "by".
+
+Let's put it on a row, and insert some of the bells and whistles from before:
+
+```{r}
+p + geom_line(color="gray70",
+              alpha=0.7,
+              aes(group = country)) +
+  geom_smooth(size = 1.1,
+              method = "loess",
+              se = FALSE) +
+  scale_y_log10(labels=scales::dollar) +
+  facet_wrap(~ continent, ncol = 5) +
+  labs(x = "Year",
+       y = "GDP Per Capita",
+       title = "GDP Per Capita on Five Continents")
+```
+
+It did a lot of things behind the scenes: Nice logarithmic labels for dollars at 1000 10000 and 100000. 
+
+## More about stats
+What is going on behind the scenes, and how do we take advantage of that? New geom:
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes( x = continent))
+            
+p + geom_bar()
+```
+
+We only specified X, but also got Y. geom_bar calculated the count of observations, to display itself. So this graph lists the total number of country years in the dataset.
+
+It does this using the default stat_ function associated with the geom_bar(), stat_count(). This function can compute two new variables, count, and prop (short for proportion). The count statistic is the default used. 
+
+To use the prop:
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = continent))
+p + geom_bar(mapping = aes(y = ..prop..))
+```
+
+It doesn't do what we want it to, though. Not informative. We infer that this is a grouping issue. 
+
+The .. is the syntax for accessing statistics computed by the stat_ functions. Nothing syntactically magical. 
+
+So let's make it sensible, by telling geom_bar to treat the whole dataset as one.
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = continent))
+p + geom_bar(mapping = aes(y = ..prop..,
+                           group = 1))
+```
+
+### Geom functions call their default stat functions, and vice versa
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = continent))
+p + geom_bar()
+# is equal to
+p + stat_count()
+```
+
+## Position adjustments
+
+```{r}
+p <- ggplot (data = diamonds,
+             mapping = aes(x = cut,
+                           color = cut))
+p + geom_bar()
+```
+
+Color gets the outside bar. Fill takes the inside
+```{r}
+p <- ggplot (data = diamonds,
+             mapping = aes(x = cut,
+                           fill = cut))
+p + geom_bar()
+```
+
+
+This legend is redundant. Let's cross-classify cut/clarity:
+
+```{r}
+p <- ggplot(data = diamonds,
+            mapping = aes(x = cut, fill = clarity))
+p + geom_bar()
+```
+
+or to make more useful with fill
+
+```{r}
+p <- ggplot(data = diamonds,
+            mapping = aes(x = cut, fill = clarity))
+p + geom_bar(position = 'fill')
+```
+
+or dodge
+
+```{r}
+p <- ggplot(data = diamonds,
+            mapping = aes(x = cut, fill = clarity))
+p + geom_bar(position = 'dodge')
+```
+
+## Plotting a finished table
+
+```{r}
+head(titanic)
+```
+
+When calculations are already done for us, we want to tell geom_bar to not calculate for us:
+
+```{r}
+p <- ggplot(data = titanic,
+            mapping = aes(x = fate,
+                          y = percent,
+                          fill = sex))
+p + geom_bar(stat = "identity", position = "dodge") +
+  theme(legend.position = "top")
+```
+
+The theme() function controls parts of the plot that don't belong to its "grammatical" structure.
+
+The position argument can also be identitiy: "plot it right here"
+
+```{r}
+head(maunaloa)
+```
+
+```{r}
+p <- ggplot(data = maunaloa,
+            mapping = aes(x=date,
+                          y=diff,
+                          fill=pos))
+p + geom_bar(stat="identity", position="identity") +
+  guides(fill=FALSE)
+```
+
+## Histograms and Kernel densities
+
+1 new dataset
+
+```{r}
+head(midwest)
+```
+
+2 new geoms: geom_histogram() and geom_density
+
+```{r}
+p <- ggplot(data = midwest,
+            mapping = aes(x = area))
+p + geom_histogram()
+```
+
+To follow its recommendation, lets set bins to 10 to make it coarser:
+
+```{r}
+p <- ggplot(data = midwest,
+            mapping = aes(x = area))
+p + geom_histogram(bins = 10)
+```
+
+
+Let's mess around a bit. As a functional language, we can perform actions on the fly, as we go, without having to make a new dataset. 
+
+```{r}
+OH.WI <- c("OH", "WI")
+
+# Subset our data on the fly
+
+p <- ggplot(data = subset(midwest, state %in% OH.WI),
+            mapping = aes(x = percollege, fill = state))
+p + geom_histogram(position = "identity",
+                   alpha = 0.4, bins = 20)
+```
+
+New operator as well %in%. A convinient built in operator that returns a true false value. Asks for a subset in the data WHERE the state is in OH.WI
+
+## geom_hist()'s continious counterpart, geom_density()
+Newer, depend on the availability of quick computers. Estimates kernel density. Think of it as a one dimensional smoother. What sort of continious distribution does this look like?
+
+```{r}
+p <- ggplot(data = midwest,
+            mapping = aes(x = area))
+p + geom_density()
+```
+
+Make it nice:
+
+```{r}
+p <- ggplot(data = midwest,
+            mapping = aes(x = area,
+                          fill = state,
+                          color = state))
+p + geom_density(alpha = 0.3)
+```
+
+We can also compute, if we want the percentage distances, scale it by 
+
+```{r}
+p <- ggplot(data = subset(midwest, subset = state %in% OH.WI),
+            mapping = aes(x = area, fill = state, color = state))
+p + geom_density(alpha = 0.3, mapping = (aes(y = ..scaled..)))
+```
+
+
+
+
+That's all for now folks.
+
+
+Day 2: 08-17-2017
+# Group, Facet and Transform
+Although you can do a lot of transformations on the fly in ggplot, the code can become complicated. It's better in the long run to do the data preparation first. Create an object that is your summary table first, and then plot it. One reason for this is for your own code to stay clean. The other reason is that the methods we can use to edit, rearrange and sort our data are very general. It is handled by the deplyr() library, which selects, slices and filters to quickly reshape your data. The third reason is to keep track of the results we are getting are actually correct. It's easier to do that when you have access to the numbers, objects, directly. 
+
+When using this, one has to go back and check all the time. 
+
+## Frequency tables
+A small subset of the US general social survey, the GSS. Going on since 1971. gss_s
+
+```{r}
+table(gss_sm$religion)
+```
+or
+```{r}
+head(gss_sm)
+```
+or
+
+```{r}
+dim(gss_sm)
+```
+
+```{r}
+p <- ggplot(data = gss_sm,
+           aes(religion, fill = religion))
+p + geom_bar() + guides(fill = FALSE)
+```
+A more interesting way to use fill is this:
+
+```{r}
+p <- ggplot(data = gss_sm,
+            aes(x = bigregion,
+                fill = religion))
+p + geom_bar()
+```
+
+Better to show it like this maybe:
+
+```{r}
+p <- ggplot(data = gss_sm,
+            aes(x = bigregion,
+                fill = religion))
+p + geom_bar(position = "fill")
+```
+
+Or maybe with dodge
+
+```{r}
+p <- ggplot(data = gss_sm,
+            aes(x = bigregion,
+                fill = religion))
+p + geom_bar(position = "dodge")
+```
+
+But if we want to properly show proportions within regions. How to? 
+
+```{r}
+p <- ggplot(data = gss_sm,
+            aes(x = bigregion,
+                fill = religion))
+p + geom_bar(position = "dodge", mapping = aes(y = ..prop..))
+```
+
+That's not right. We want to group it, so that proportions are relative to the whole.
+
+```{r}
+p <- ggplot(data = gss_sm,
+            aes(x = bigregion,
+                fill = religion))
+p + geom_bar(position = "dodge",
+             mapping = aes(y = ..prop..,
+                        group = religion))
+```
+
+The bars sum to one across the regions, that is not correct. We need to understand the table
+
+```{r}
+tail(gss_sm$religion)
+```
+
+We could fix this with complex ggplotting. But lets fix the data.frame.
+
+## Summarize and transfomr using pipes.
+The operator is %>% . Kind of similar to %in%. Operator. Things that return a result. Special operators are formatted like this. Pipes are powerful. We want to get the stacked bar chart, but showing the bars side by side, with proportions. So percentages per row, in stead of per column.
+
+### Reorganizing tables with dplyr
+We want to make summary counts of religious preference by census region. And then make percent religous preferences by census region.
+
+The pipe lets data pass through with modifications. dplyr does its work through different verbs.
+
+**group_by()** Group the data at the level we want, such as "religion by region" or "authors by publications by year"
+
+**filter()** or **select()** Filter or select pieces of the data. This gets us the subset of the table we want to work on. filter() rows, select() columns.
+
+**mutate()** Mutate the data by creating new variables at the current level of grouping. Mutating adds new columns to the table. 
+
+**summarize()** Summarize or aggregate the grouped data. This creates new variables at a higher level of grouping. For example we might calculate means with mean() or counts with n(). THis results in a smaller summary table, which we might do more things with if we want. 
+
+## Create a pipeline of transformations with the pipe operator
+
+You can read the pipeline operator as "and then" or in shell "|"
+```{r}
+rel_by_region <- gss_sm %>%
+    group_by(bigregion, religion) %>% # Nest inwards by going left to right. First the bigger, then the smaller
+    summarize(N = n()) %>% # Notice we're not making new objects, just piping it downwards. Summar
+    mutate(freq = N / sum(N),
+           pct = round((freq*100), 1)) # Round it off to one decimal place
+```
+
+Objects in a pipeline carry forward some assumption about context. We create variables on the fly.
+
+Grouping with group_by() carries forward; summary calculations are applied to the innermost group, and returned for the next group up.  Summarize peel off each level of the grouping and return the results to the group up. 
+
+Mutate did not change the grouping level, just created a new column / variable at the level of the grouping. 
+
+## Use pipelines to create summary table objects, then graph them.
+
+Lets do a sanity check:
+```{r}
+rel_by_region %>%
+  group_by(bigregion) %>%
+  summarize(total = sum(pct))
+```
+
+Perfect (or kinda: errors from summing up. ACCEPTABLE)
+
+```{r}
+p <- ggplot(data = rel_by_region,
+     mapping = aes(x = bigregion,
+                   y = pct,
+                   fill = religion))
+p + geom_bar(position = "dodge",
+             stat = "identity") +
+    labs(x = "Religion",
+        y = "Percentage",
+        fill = "religion") +
+    theme(legend.position = "top")
+```
+
+So lets look at education mobility:
+
+```{r}
+degree_by_pa <- gss_sm %>%
+  group_by(padeg, degree) %>%
+  summarize(N = n()) %>%
+  mutate(freq = N / sum(N),
+         pct = round(freq*100), 1)
+
+p <- ggplot(data = degree_by_pa,
+            mapping = aes(x = padeg,
+                          y = pct,
+                          fill = degree))
+p + geom_bar(position = "dodge",
+             stat = "identity") +
+    labs( x = "Father's degree",
+          y = "Percentage")
+```
+
+And faceted by bigregion
+
+```{r}
+degree_by_pa <- gss_sm %>%
+  group_by(bigregion, padeg, degree) %>% # It needed to be grouped by bigregion as well
+  summarize(N = n()) %>%
+  mutate(freq = N / sum(N),
+         pct = round(freq*100), 1)
+
+p <- ggplot(data = degree_by_pa,
+            mapping = aes(x = padeg,
+                          y = pct,
+                          fill = degree))
+p + geom_bar(position = "dodge",
+             stat = "identity") +
+  facet_wrap(~ bigregion) + # here comes the faceting. Remember; tilde means "by"
+    labs( x = "Father's degree",
+          y = "Percentage")
+```
+
+## Working with geoms
+We're expanding our vocabulary. We'll also work with multiple layered plots.
+
+ggplot is a graphing template. We are always starting with our table of tidy data. The steps we take :
+p <- ggplot (data = <DATA>,
+              mapping=aes(<MAPPINGS)) +
+<GEOM_FUNCTION>(
+mapping = aes(<MAPPINGs>),
+stat = <STAT>,
+position = <POSITION>) +
+
+<SCALE_FUNCTION> +
+<COORDINATE_FUNCTION> +
+<FACET_FUNCTION>)
+
+So using it with gapminder:
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = year,
+                          y = gdpPercap))
+p + geom_line(aes(group = country)) +
+    scale_y_log10() +
+    coord_cartesian() +
+    facet_wrap(~ continent)
+```
+
+geom_point()
+geom_line()
+geom_smooth()
+etc...
+
+## The organ donation data
+Collected by Kieran. Looking at it with pipelines:
+
+```{r}
+organdata %>% select(1:6) %>% sample_n(size = 10)
+```
+
+```{r}
+p <- ggplot(data = organdata,
+            aes(x = year,
+                y = donors))
+p + geom_point()
+```
+
+The warning is not critical, but should be payed attention to.
+
+```{r}
+
+p <- ggplot(data = organdata,
+            aes(x = year,
+                y = donors))
+
+p + geom_line() +
+    facet_wrap(~ country) +
+    theme_dark()
+
+```
+
+
+## Boxplots
+
+```{r}
+p <- ggplot(data = organdata,
+            mapping = aes(x = country, y = donors))
+p + geom_boxplot() +
+    theme_gray()
+```
+
+Boxplots are similar to scatterplots, they should probably have X and Y. But it's not showing us the crossregional distribution.
+
+```{r}
+p <- ggplot(data = organdata,
+            aes(x = donors, y = country))
+p + geom_boxplot()
+```
+Boxplot does not like it that way.
+
+```{r}
+p <- ggplot(data = organdata,
+            mapping = aes(x = country, y = donors))
+p + geom_boxplot() +
+    coord_flip()
+```
+
+Lets order the categorical variabel by donor
+
+```{r}
+p <- ggplot(data = organdata,
+            mapping = aes(x = reorder(country, donors, na.rm=TRUE), y = donors))
+p + geom_boxplot() +
+  coord_flip() + # Flipping it makes it right
+  labs(x = NULL)
+
+```
+
+The reorder function takes variable, by-variable, the default function is mean() (but can also take median() std()). And we asked it to not calculate NA into the mean. 
+
+Another data set
+
+```{r}
+p <- ggplot(data = organdata,
+            aes(x = reorder(country, donors, na.rm=TRUE),
+                y = donors,
+                fill = world))
+p + geom_boxplot() +
+  coord_flip() +
+  theme(legend.position = "top")
+```
+
+Lets try to make it a dotplot
+
+```{r}
+p <- ggplot(data = organdata,
+            aes(x = reorder(country, donors, na.rm=TRUE),
+                y = donors,
+                color = world))
+p + geom_point() +
+  coord_flip() +
+  theme(legend.position = "top")
+
+```
+
+geom_jitter can help with overplotting
+
+
+```{r}
+p <- ggplot(data = organdata,
+            mapping = aes(x = country, y = donors))
+p + geom_boxplot() +
+  coord_flip() # Flipping it makes it right
+
+```
+
+Lets order the categorical variabel by donor
+
+```{r}
+p <- ggplot(data = organdata,
+            mapping = aes(x = reorder(country, donors, na.rm=TRUE), y = donors))
+p + geom_boxplot() +
+  coord_flip() + # Flipping it makes it right
+  labs(x = NULL)
+
+```
+
+The reorder function takes variable, by-variable, the default function is mean() (but can also take median() std()). And we asked it to not calculate NA into the mean. 
+
+Another data set
+
+```{r}
+p <- ggplot(data = organdata,
+            aes(x = reorder(country, donors, na.rm=TRUE),
+                y = donors,
+                fill = world))
+p + geom_boxplot() +
+  coord_flip() +
+  theme(legend.position = "top")
+```
+
+Lets try to make it a dotplot
+
+```{r}
+p <- ggplot(data = organdata,
+            aes(x = reorder(country, donors, na.rm=TRUE),
+                y = donors,
+                color = world))
+p + geom_jitter() +
+  coord_flip() +
+  theme(legend.position = "top")
+```
+
+But it becomes a little too much. Lets reduce the jitter
+
+
+```{r}
+p <- ggplot(data = organdata,
+            mapping = aes(x = country, y = donors))
+p + geom_boxplot() +
+  coord_flip() # Flipping it makes it right
+
+```
+
+Lets order the categorical variabel by donor
+
+```{r}
+p <- ggplot(data = organdata,
+            mapping = aes(x = reorder(country, donors, na.rm=TRUE), y = donors))
+p + geom_boxplot() +
+  coord_flip() + # Flipping it makes it right
+  labs(x = NULL)
+
+```
+
+The reorder function takes variable, by-variable, the default function is mean() (but can also take median() std()). And we asked it to not calculate NA into the mean. 
+
+Another data set
+
+```{r}
+p <- ggplot(data = organdata,
+            aes(x = reorder(country, donors, na.rm=TRUE),
+                y = donors,
+                fill = world))
+p + geom_boxplot() +
+  coord_flip() +
+  theme(legend.position = "top")
+```
+
+Lets try to make it a dotplot
+
+```{r}
+p <- ggplot(data = organdata,
+            aes(x = reorder(country, donors, na.rm=TRUE),
+                y = donors,
+                color = world))
+p + geom_point() +
+  coord_flip() +
+  theme(legend.position = "top")
+```
+
+```{r}
+p <- ggplot(data = organdata,
+            aes(x = reorder(country, donors, na.rm=TRUE),
+                y = donors,
+                color = world))
+p + geom_jitter(position = position_jitter(width = 0.15)) + # reducing jitter a bit
+  coord_flip() +
+  theme(legend.position = "top") +
+  theme_minimal()
+
+```
+
+
+## Summarize with dplyr
+
+```{r}
+by_country <- organdata %>% group_by(consent.law, country) %>%
+  summarize(don.rate = mean(donors, na.rm = TRUE),
+            don.sd = sd(donors, na.rm = TRUE),
+            gdp = mean(gdp, na.rm = TRUE),
+            health = mean(health, na.rm = TRUE),
+            roads = mean(roads, na.rm = TRUE),
+            cerebvas = mean(cerebvas, na.rm = TRUE))
+by_country
+```
+Now that we've made a nice object, lets ggplot it
+
+```{r}
+p <- ggplot(data = by_country,
+            aes( x = don.rate,
+                 y = reorder(country, don.rate),
+                 color = consent.law))
+p + geom_point(size=3) +
+  labs(x="Donor Procurement Rate",
+       y="",
+       color="Consent Law") +
+  theme(legend.position = "top") +
+  theme_minimal()
+```
+
+Or we can facet it. See that we use free_y to get countries at each facet, and ncol=1 to only one column with 2 rows.
+
+```{r}
+p <- ggplot(data = by_country,
+            mapping = aes(x = don.rate,
+                          y = reorder(country, don.rate)))
+p + geom_point(size=3) + 
+  facet_wrap(~ consent.law, scale = "free_y", ncol=1) + 
+  labs(x="Donor Procurement Rate",
+       y= "")
+```
+
+Another geoms pointrange
+
+```{r}
+p <- ggplot(data = by_country,
+            mapping = aes(x = reorder(country, don.rate),
+                          y = don.rate))
+p + geom_pointrange(mapping = aes(ymin= don.rate - don.sd,
+                                  ymax= don.rate + don.sd)) +
+  labs(x="", y="Donor Procurement Rate") +
+  coord_flip()
+```
+
+
+## Plotting text directly
+
+
+```{r}
+p <- ggplot(data = by_country,
+            mapping = aes(x = don.rate, y = gdp ))
+p + geom_text(mapping = aes(label = country)) +
+  labs(y="GDP", x="Donor Procurement Rate") +
+  coord_flip()
+```
+
+More bells with dots and hjust to get labels next to dot. Space is added to proportion of the size of the label. So not satisfactory.
+
+
+```{r}
+p <- ggplot(data = by_country,
+            mapping = aes(x = don.rate, y = gdp ))
+p + geom_point() + geom_text(mapping = aes(label = country), hjust = 0) +
+  labs(y="GDP", x="Donor Procurement Rate") +
+  coord_flip()
+```
+
+We fix it with ggrepel: This library provides geom_text_repel() and geom_label_repel()
+
+```{r}
+library("ggrepel")
+
+```                          
+
+Moar data
+
+```{r}
+elections_historic %>% select(2:7)
+```
+
+We'll make a graph of presidents in the US: Popular and electoral college margins.
+
+A bit more complex. Let's make some variables with the titles and texts first, to keep graph code clean.
+
+```{r}
+p_title <- "Presidential Elections: Popular & Electoral College Margins"
+p_subtitle <- "1824 - 2016"
+p_caption <- "Data for 2016 are provisional."
+x_label <- "Winner's share of Popular Vote"
+y_label <- "Winner's share of Electoral College Votes"
+
+theme_set(theme_minimal())
+
+p <- ggplot(elections_historic, aes(x = popular_pct,
+                                    y = ec_pct,
+                                    label = winner_label))
+p1 <- p + geom_hline(yintercept = 0.5, size = 1.4, color = "gray60") +  # Custom plot lines first, since plottings happen layer by layer
+    geom_vline(xintercept = 0.5, size = 1.4, color = "gray60") +
+    geom_point() + # LAyerings: Base layer, Grid Lines, Points
+    geom_text_repel() +
+    scale_x_continuous(labels = scales::percent) + 
+    scale_y_continuous(labels = scales::percent) +
+    labs(x = x_label,
+         y = y_label,
+         subtitle = p_subtitle,
+         caption = p_caption,
+         title = p_title)
+print(p1)
+```
+
+
+```{r}
+p <- ggplot(data = by_country,
+            mapping = aes(x = gdp, y = health))
+p + geom_point() +
+   geom_text_repel(data = subset(by_country, gdp > 25000),
+                   mapping = aes(label = country))
+```
+
+Or
+
+```{r}
+p <- ggplot(data = by_country,
+            aes(x = gdp, y = health))
+p + geom_point() +
+  geom_text_repel(data = subset(by_country,
+                                gdp > 25000 | health > 1500 | country %in% "Belgium"),
+                  mapping = aes(label = country))
+```
+
+
+
+Adding data on the fly
+
+```{r}
+organdata$ind <- organdata$ccode %in% c("Ita", "Spa") &
+                              organdata$year > 1988
+
+p <- ggplot(data = organdata,
+            mapping = aes(x = roads,
+                          y = donors, color = ind))
+p + geom_point() +
+    geom_text_repel(data = subset(organdata, ind),
+                    mapping = aes(label = ccode)) +
+  guides(label = FALSE, color = FALSE)
+```
+
+## Write and draw in the Plot Area
+
+Sometimes you want to draw or write arbitrarily in the plot. For example explain for laypeople. 
+
+```{r}
+p <- ggplot(data = organdata,
+            mapping = aes(x = roads,
+                          y = donors))
+p + geom_point() +
+    annotate(geom = "text", x = 91, y = 33,
+             label = "A surprisingly high \n recovery rate.",
+             size = 3.5,
+             color = "red")
+```
+
+Moar annotations
+
+```{r}
+p <- ggplot(data = organdata,
+            mapping = aes(x = roads, y = donors))
+p + geom_point() +
+    annotate(geom = "rect", xmin = 125, xmax = 155, ymin = 30, ymax = 35, fill = "red", alpha = 0.2) +
+    annotate(geom = "text", label = "A surprisingly high \n recovery rate", x = 175, y = 33)
+```
+
+## Scales, guides and themes
+
+Every aesthetic mapping has a scale. If you want to adjust how that scale is marked or graduated, then you use a scale_ function.
+
+Many scales come with a legend or key to help the reader interpret the graph. These are called guides. You can make adjusments to them with the guides() function.
+
+Features not strictly connected to the logical structure of the data being deisplayed are adjusted with the theme() function.
+
+Scale functions control scale mappings in geoms. remember: JNot just X, and Y.
+
+This means you can control things like color schemes *for data mappings* through scale functions.
+
+scale_<MAPPING>_<KIND>() 
+
+Scale functions are consistenly named, by mapping and kind.
+
+scale_x_continuous()
+
+scale_y_continuous()
+
+scale_x_discrete()
+
+scale_y_discrete()
+
+scale_x_log10()
+
+scale_x_sqrt()
+
+scale_color_gradient() for continuous
+
+scale_color_gradient2() its reverse
+
+scale_color_hue() for categorical
+
+scale_fill_gradient() 
+
+scale_fill_gradient2()
+
+
+E.g. Labels, breaks, and limits.
+
+```{r}
+p <- ggplot(data = organdata,
+            mapping = aes( x = roads,
+                           y = donors,
+                           color = world))
+p + geom_point() +
+    scale_x_log10() +
+    scale_y_continuous(breaks = c(5, 15, 25),
+                       labels = c("Five", "Fiftum", "Twenty Fivezz")) +
+    scale_color_discrete(label = c("Corporatist", "Liberal", "Social Democratic", "other")) +
+  
+    labs( x = "Road Deaths",
+          y = "Donor Procurement",
+          color = "Welfare State")
+            
+```
+
+scale_<MAPPING>_<KIND>()
+
+
+## Working with Models
+
+How to get data out of models. General principles. Into ggplot. broom, framework to get tidy data out of stat models. 
+
+Simple linear model by two different methods: robust regression and ordinary least squares.
+
+```{r}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = log(gdpPercap), y = lifeExp))
+p + geom_point(alpha=0.1) +
+    geom_smooth(color = "tomato",
+                fill = "tomato",
+                method = MASS::rlm) +
+    geom_smooth(color = "steelblue",
+                fill = "steelblue",
+                method = "lm")
+```
+
+
+Or splines
+
+```{r}
+p + geom_point(alpha=0.1) +
+    geom_smooth(color = "tomato",
+                method = "lm", size = 1.2,
+                formula = y ~splines::bs(x, 3),
+                se = FALSE)
+```
+
+## Look inside model objects
+
+Objects have an internal structure in R. Think of them as various pieces. Sometimes strings, matrices, numbers, etc. Each one is named, and can have subpieces of their own. Think of it as a cabinet with mini cabinets inside its drawers.
+
+```{r}
+str(gapminder)
+```
+
+First class. above: tabel dataframe. 1704 observations and 6 variables.
+levels are the count of different types of values.
+
+Linear regression and summary of it:
+```{r}
+out  <- lm(formula = lifeExp ~ gdpPercap + pop + continent,
+           data = gapminder)
+summary(out)
+```
+
+```{r}
+str(out)
+```
+
+We want to get the stuff out in a tidy format. 
+
+Useful plots present findings in substantive meaning. For example converting to predictive possibilites in stead of coefficients. Sensible values that are substantial and theoretically interesting.
+
+Show your degree of confidence or uncertainty.
+
+Show the data when you can. Like the relationship of predicted values and confirmed ones. easy due to layered nature of ggplot.
+
+## Predictions from a model
+Everything prediction related works this way. R provides a family of interfaces to range of different models.  The predict function is the workhorse for generating new data. We take our model, generate new predictive values, and plot them, showing also the existing data. 
+
+We generate a data frame that is a sort of clone of the existing one. We're interested in looking at the relationship between gdpPercapita and population
+
+```{r}
+min_gdp <- min(gapminder$gdpPercap)
+max_gdp <- max(gapminder$gdpPercap)
+
+med_pop <- median(gapminder$pop)
+
+pred_df <- expand.grid(gdpPercap = (seq(from = min_gdp,
+                                        to = max_gdp,
+                                        length.out = 100)),
+                       pop = med_pop,
+                       continent = c("Africa", "Americas", "Asia", "Europe", "Oceania"))
+
+dim(pred_df)
+
+head(pred_df)
+```
+
+Notice that you are getting a table of data back -a data frame. Underneath we are still creating and operating on tables of tidy data.
+
+now lets predict
+
+```{r}
+pred_out <- predict(object = out,
+                    newdata = pred_df,
+                    interval = "predict")
+
+head(pred_out)
+```
+
+For "natural" data frames you should merge() by a common key, and not simply cbind(). here we do a cbind though
+
+```{r}
+pred_df <- cbind(pred_df, pred_out)
+
+head(pred_df)
+```
+
+Back to square one, a tidy dataframe to plot.
+
+```{r}
+p <- ggplot(data = subset(pred_df, continent %in% c("Europe", "Africa")),
+            mapping = aes(x = gdpPercap,
+                          y = fit,
+                          ymin = lwr,
+                          ymax = upr,
+                          color = continent,
+                          fill = continent,
+                          group = continent))
+p + geom_point(data = subset(gapminder,
+                             continent %in% c("Europe", "Africa")),
+                    mapping = aes(x = gdpPercap,
+                                  y = lifeExp,
+                                  color = continent),
+                                  alpha = 0.5,
+                                  inherit.aes = FALSE) +
+    geom_smooth() +
+    geom_ribbon(alpha = 0.2, color = FALSE) +
+    scale_x_log10(labels = scales::dollar)
+```
+
+Something like this is going on behind the scenes for what we're going to do from now on. But we would prefer not to do it ourselves. 
+
+## Using broom to tidy up models
+Load it
+
+```{r}
+library("broom")
+```
+broom's functions turn the output of models into tidy data you can use in plots.
+
+summary(out) is not useful for ggplot. broom thinks of things as three levels of useful things: component level, observation level, and model level information. Each of broom's three functions corresponds to these. So the first is:
+
+tidy()  - component level
+
+augment() - observation level
+
+glance() - model level
+
+
+```{r}
+out_comp <- tidy(out)
+out_comp %>% round_df()
+
+p <- ggplot(out_comp, aes(x = term, y = estimate))
+p + geom_point() + coord_flip()
+```
+
+Tidy takes some arguments, like confidence intervals.
+
+```{r}
+out_conf <- tidy(out, conf.int = TRUE)
+out_conf %>% round_df()
+```
+
+With those in place, we can plot it with geom_pointrange. But at this point we would want to clean up our labels etc. And drop the intercept, since its so much larger.
+
+```{r}
+out_conf <- subset(out_conf, term %nin% "(Intercept)") # %nin% = not in. Opposite of %in%. Drop everything associated with the word Intercept
+out_conf$nicelabs <- prefix_strip(out_conf$term, "continent")
+
+p <- ggplot(out_conf, mapping = aes(x = reorder(nicelabs, estimate),
+                                    y = estimate, 
+                                    ymin = conf.low,
+                                    ymax = conf.high))
+p + geom_pointrange() + coord_flip() +
+  labs(x="", y="OLS Estimate")
+
+```
+
+
+## Down to observation level
+This is handled in broom by augment(). 
+Ads 
+
+* .fitted . fitted values of the model
+* .se.fit - The standard errors 
+* .resid, 
+* .hat
+* .sigma
+* .cooksd
+* .std.resid
+```{r}
+out_aug <- augment(out)
+head(out_aug) %>% round_df()
+```
+
+```{r}
+p <- ggplot(data = out_aug,
+            mapping = aes(x = .fitted, y = .resid))
+p + geom_point()
+```
+
+Glance is the function to see the model level:
+
+```{r}
+glance(out) %>% round_df()
+```
+
+Broom's strength is twofold. These functions are available for an increasing number of libraries.
+
+
+
+
+
+
+
+
+
+
